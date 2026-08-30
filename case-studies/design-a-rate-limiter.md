@@ -6,51 +6,63 @@ tags: [interview-relevant]
 
 # Design a Rate Limiter
 
-An end-to-end walkthrough of building a distributed [[rate-limiting]] service for a public API. The concepts are covered separately; this note is about the decisions that only appear when you assemble them.
+A walkthrough of building a distributed [[rate-limiting]] service for a public API, from the first decision through to the failure modes. The individual algorithms have their own notes. What this one covers is everything that only becomes visible once you try to assemble them into something real.
 
-## Requirements
+## What you're building
 
-Assume a public API with roughly 50,000 requests per second across 200,000 active API keys, served by a horizontally scaled fleet. Limits are per API key and per endpoint class, since a search endpoint and a health check should not share a budget. Rejections must tell the caller when to retry. The limiter must add no more than a couple of milliseconds at p99, and — the requirement that shapes everything — it must not be able to take the API down on its own.
+Picture a public API serving around 50,000 requests per second across 200,000 active API keys, running on a horizontally scaled fleet. Limits apply per API key and per endpoint class, because a search endpoint and a health check have no business sharing a budget. When you reject someone, you owe them an honest answer about when to come back. The limiter should add a millisecond or two at p99, no more.
 
-## Choosing the limit key
+There's one more requirement, and it quietly constrains every other decision: the limiter must never be able to take the API down by itself. Hold onto that. It's why several of the choices below go the way they do.
 
-Before any algorithm, decide what you are counting.
+## Start with the key, not the algorithm
 
-Keying on API key is the obvious start, but it is not sufficient alone. A single key hitting a cheap endpoint 1,000 times per second is fine; the same key hitting an expensive aggregation endpoint 1,000 times per second is not. So the key becomes a tuple of API key and endpoint class, with a separate global limit per key so that a caller cannot multiply its budget by spreading traffic across every endpoint.
+Most people jump straight to picking an algorithm. Resist that. The first real decision is what you're counting, and it does more to determine whether the limiter works than the algorithm ever will.
 
-Unauthenticated endpoints — signup, login, password reset — have no API key, so they fall back to IP, with all the weaknesses that implies. This is worth stating explicitly rather than discovering later: IP-keyed limits are a speed bump for abuse, not a defence, because an attacker with a proxy pool simply moves. Their real job is stopping the naive case and buying time for detection.
+Keying on API key is the obvious opening move, and on its own it isn't enough. One key hitting a cheap endpoint a thousand times a second is fine. That same key hitting an expensive aggregation endpoint at the same rate is not. So the key becomes a pair: API key plus endpoint class. You'll want a separate global limit per API key sitting on top of that, or a caller multiplies its budget just by spreading traffic across every endpoint you expose.
 
-A useful refinement is weighting: expensive requests consume more than one token. This turns the limiter from a request-rate limiter into a crude cost limiter, which is usually what the business actually wants.
+Then there are the endpoints with no API key at all. Signup, login, password reset — the ones you most need to protect — have nothing to identify the caller but an IP address. Be honest about this up front rather than discovering it later. IP-keyed limits stop the naive case and buy you time to detect the rest. An attacker with a pool of proxies walks straight through them. That's not an argument against having them, only against believing they're a defence.
 
-## Choosing the algorithm
+One refinement pays for itself. Let expensive requests consume more than one token, and the limiter stops measuring request rate and starts measuring something closer to cost, which is usually what the business meant in the first place.
 
-[[sliding-window-counter]] for most endpoints. Two integers per key, no boundary doubling, no burst parameter for an operator to misconfigure, and an error rate under a percent that is invisible against limits that were guesses anyway.
+## Picking algorithms
 
-[[token-bucket]] for endpoints where legitimate clients are genuinely bursty — bulk ingest, sync-on-foreground mobile traffic — because rejecting a client for doing a normal thing efficiently is worse than absorbing the burst.
+You'll want more than one, and that's fine.
 
-[[sliding-window-log]] only on the authentication endpoints, where limits are small (five attempts, not five thousand), exactness is a security property, and the stored timestamps double as an audit trail.
+[[sliding-window-counter]] handles most endpoints. Two integers per key, no boundary doubling, nothing for an operator to misconfigure, and an error rate under a percent that disappears against limits you estimated anyway.
 
-[[fixed-window-counter]] for the monthly billing quota, where the window is long enough that its boundary flaw does not matter and its cheapness does.
+[[token-bucket]] goes on endpoints where real clients are legitimately bursty. Bulk ingest, mobile apps syncing on foreground. Rejecting a client for doing a normal thing efficiently is worse than absorbing the spike.
 
-Four algorithms sounds like over-engineering, and it would be if each one needed its own service. They share one interface — `allow(key, cost) -> decision` — and differ only in the script the store runs.
+[[sliding-window-log]] belongs on the auth endpoints and nowhere else. Limits there are small, five attempts rather than five thousand, so its memory cost stays trivial. Exactness becomes a security property when you're counting failed logins, and the stored timestamps double as an audit trail.
 
-## Where the state lives
+[[fixed-window-counter]] covers the monthly billing quota. Its boundary flaw needs a short window to do any damage, and a month is not a short window.
 
-In-process counters are the fastest possible answer and the wrong one: with 40 instances, a limit of 100 becomes an actual limit of 4,000, and it fluctuates as the fleet autoscales. Sticky routing by API key would fix the arithmetic, but it makes the limiter a constraint on the load balancer and it collapses when the ring changes during a deploy.
+Four algorithms sounds like over-engineering. It would be, if each one needed its own service. They share a single interface, `allow(key, cost)` returning a decision, and differ only in which script the store runs.
 
-So the counters live in [[redis]], keyed by the limit tuple. At 50,000 requests per second this is 50,000 Redis operations per second — comfortable for a single node, though shard by key hash once endpoint-class fan-out multiplies it.
+## Where the counters live
 
-### The atomicity trap
+In-process counters are the fastest thing available and the wrong answer. Run 40 instances with a limit of 100 each and you've built a limit of 4,000, one that drifts every time the fleet autoscales.
 
-The obvious implementation reads the counter, decides, and writes it back. Under concurrency this is a lost-update race: two instances read 99 against a limit of 100, both conclude there is room, and both write 100. The limit is exceeded and nothing in the code looks wrong.
+Sticky routing by API key fixes the arithmetic. It also makes your limiter a constraint on your load balancer, and it falls apart the moment the ring changes during a deploy. Not worth it.
 
-The fix is to make the whole read-modify-write happen inside the store, as a Lua script that Redis executes atomically:
+So the counters go in [[redis]], keyed by the limit tuple. Fifty thousand requests per second means fifty thousand Redis operations per second, which a single node handles comfortably. Shard by key hash once endpoint-class fan-out pushes you past that.
 
-```
+### The race that testing won't catch
+
+This is the bit that catches people out.
+
+The obvious implementation reads the counter, decides, and writes it back. Three steps, each one correct. Run it on a single instance and it behaves perfectly.
+
+Now picture two bouncers working two doors of the same venue, each with their own clicker, both under orders to stop at 100. Both glance down and see 99. Both wave someone through. The venue holds 101 people and neither bouncer did anything wrong by their own reckoning.
+
+That's a lost update, and it's what your limiter does under concurrency. Two instances read 99, both conclude there's room, both write 100. You're over the limit and every line of code involved looks correct in review.
+
+The fix is to stop splitting the decision across the network. Push the whole read-modify-write into the store as a Lua script, which Redis executes atomically:
+
+```bash
 EVALSHA <sha> 1 ratelimit:key42:search 100 60 <now>
 ```
 
-Every non-trivial algorithm here needs this. Fixed window is the exception, since `INCR` is already atomic and returns the new value — which is a genuine argument in its favour for the quota case.
+Every algorithm here needs this except fixed window, where `INCR` is already atomic and hands back the new value. That's a genuine point in its favour for the quota case.
 
 ## Where the check runs
 
@@ -71,40 +83,40 @@ sequenceDiagram
     end
 ```
 
-At the [[api-gateway]], because a rejected request should consume as little as possible and because the policy belongs in one place rather than in every service. The cost is that the gateway now needs to know each endpoint's class, which is configuration that drifts from reality unless services declare their own limits and the gateway reads that declaration.
+Put the check at the [[api-gateway]]. A rejected request should burn as little as possible, and the policy belongs in one place instead of being reimplemented in every service. What you pay for that is configuration drift: the gateway now needs to know each endpoint's class, and that knowledge rots unless services declare their own limits and the gateway reads those declarations.
 
-Per-service limiters still have a role as a second layer, protecting a service from internal callers that never pass through the gateway. That is defence in depth, not duplication.
+Keep per-service limiters as a second layer anyway. They catch internal callers that never pass through the gateway, which makes them defence in depth rather than duplication.
 
-## What the client sees
+## What the caller sees
 
-A rejection is `429 Too Many Requests` with `Retry-After`. Successful responses carry the limit state so a well-behaved client can self-pace instead of discovering the wall by hitting it:
+Reject with 429 and a `Retry-After`. On successful responses, send the limit state back so a well-behaved client can pace itself instead of finding the wall by walking into it:
 
-```
+```http
 X-RateLimit-Limit: 1000
 X-RateLimit-Remaining: 847
 X-RateLimit-Reset: 1756567890
 ```
 
-One trap here. If every rejected client is told to retry at the same window reset, they will — and the limiter has just scheduled a synchronised stampede against itself, the [[thundering-herd]] problem that [[fixed-window-counter]] creates structurally. Add jitter to `Retry-After` so clients spread out. This is a two-line change that people leave out and then diagnose for a week.
+Now the trap. Tell every rejected client to retry at the same window reset and they will, all of them, at the same instant. You've scheduled a [[thundering-herd]] against yourself and published the schedule in your own response headers. [[fixed-window-counter]] generates this structurally, since its reset time is the same for everyone.
 
-## When the limiter fails
+Add jitter to `Retry-After`. It's two lines of code. Teams leave it out and then spend a week diagnosing a load spike that arrives on a suspiciously regular cadence.
 
-Redis will be unavailable at some point, and the behaviour then is a policy decision, not an implementation detail.
+## When the limiter itself fails
 
-**Fail open** — allow everything the limiter cannot check — keeps the API serving during a Redis incident, at the cost of removing all protection at the exact moment the system is already unhealthy.
+Redis will be unavailable at some point. What happens then is a policy decision, and if you don't make it deliberately, some catch block makes it for you.
 
-**Fail closed** — reject everything — turns a limiter outage into a full API outage, and is very hard to justify to anyone.
+Fail open means allowing whatever you can't check. Your API keeps serving through a Redis incident, and you've stripped all protection at the exact moment the system is already unhealthy.
 
-The workable answer is neither. Keep a coarse in-process fallback limiter, sized generously, and switch to it when the store is unreachable: protection degrades from precise to approximate rather than from precise to absent. Wrap the Redis call in a [[circuit-breaker]] so a slow store fails fast instead of adding its latency to every request, and set an aggressive timeout — a limiter that blocks for 500ms has become the outage it existed to prevent.
+Fail closed means rejecting everything. You've turned a limiter outage into a full API outage, which is a hard thing to explain to anyone afterwards.
 
-Security-critical limits are the exception. Login attempt limits should fail closed, because the alternative is that an attacker who can degrade your Redis gets unlimited credential stuffing for free.
+Both are bad, so don't pick either. Keep a coarse in-process limiter as a fallback, sized generously, and switch to it when the store is unreachable. Protection degrades from precise to approximate instead of from precise to absent. Wrap the Redis call in a [[circuit-breaker]] so a slow store fails fast rather than adding its latency to every request you serve, and set an aggressive timeout while you're there. A limiter that blocks for 500ms has become the outage it existed to prevent.
+
+Auth endpoints are the exception. They should fail closed, because otherwise anyone who can degrade your Redis has bought themselves unlimited credential stuffing.
 
 ## What you give up
 
-The whole design rests on a number nobody can set correctly. Limits are picked from load tests, then never revisited as the cost of a request changes underneath them. A more honest system would derive limits from live health signals — latency, queue depth, error rate — and shed adaptively, which is [[load-shedding]] rather than rate limiting. That is strictly better and considerably harder, and most teams should ship the static limiter first while knowing what it does not do.
+The whole design rests on a number nobody can set correctly. Limits get chosen during a load test and then sit untouched while the cost of a request changes underneath them. A schema change makes queries expensive and your limit is suddenly far too generous. You add a cache and it's far too strict. The number doesn't know.
 
-You also accept that the limiter is now on the critical path of every request, including all the ones it will allow. Every request pays the Redis round trip so that a small fraction can be rejected. That trade is worth making, but it is worth making deliberately.
+A better system would derive its limits from live health signals, latency and queue depth and error rate, and shed adaptively. That's [[load-shedding]], and it's a good deal harder to build. Ship the static limiter first, but ship it knowing what it can't do.
 
-## Related
-
-[[rate-limiting]] for the concept and its four framing questions. [[spring-cloud-gateway-rate-limiter]] for what this looks like when the framework has already built it.
+You're also putting the limiter on the critical path of every request, including all the ones it will happily allow. Every caller pays the Redis round trip so that a small fraction can be turned away. That's worth it, and it's worth choosing on purpose rather than arriving at by default.

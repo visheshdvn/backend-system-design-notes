@@ -40,7 +40,7 @@ Four algorithms sounds like over-engineering. It would be, if each one needed it
 
 ## Where the counters live
 
-In-process counters are the fastest thing available and the wrong answer. Run 40 instances with a limit of 100 each and you've built a limit of 4,000, one that drifts every time the fleet autoscales.
+In-process counters are the fastest thing available and the wrong answer. Run 40 instances with a limit of 100 each and you've built a limit of 4,000, one that drifts every time the fleet auto scales.
 
 Sticky routing by API key fixes the arithmetic. It also makes your limiter a constraint on your load balancer, and it falls apart the moment the ring changes during a deploy. Not worth it.
 
@@ -56,7 +56,7 @@ Now picture two bouncers working two doors of the same venue, each with their ow
 
 That's a lost update, and it's what your limiter does under concurrency. Two instances read 99, both conclude there's room, both write 100. You're over the limit and every line of code involved looks correct in review.
 
-The fix is to stop splitting the decision across the network. Push the whole read-modify-write into the store as a Lua script, which Redis executes atomically:
+==The fix is to stop splitting the decision across the network. Push the whole read-modify-write into the store as a Lua script, which Redis executes atomically:==
 
 ```bash
 EVALSHA <sha> 1 ratelimit:key42:search 100 60 <now>
@@ -89,7 +89,7 @@ Keep per-service limiters as a second layer anyway. They catch internal callers 
 
 ## What the caller sees
 
-Reject with 429 and a `Retry-After`. On successful responses, send the limit state back so a well-behaved client can pace itself instead of finding the wall by walking into it:
+Reject with 429 and a `Retry-After`. ==On successful responses (also), send the limit state back so a well-behaved client can pace itself== instead of finding the wall by walking into it:
 
 ```http
 X-RateLimit-Limit: 1000
@@ -111,7 +111,7 @@ Fail closed means rejecting everything. You've turned a limiter outage into a fu
 
 Both are bad, so don't pick either. Keep a coarse in-process limiter as a fallback, sized generously, and switch to it when the store is unreachable. Protection degrades from precise to approximate instead of from precise to absent. Wrap the Redis call in a [[circuit-breaker]] so a slow store fails fast rather than adding its latency to every request you serve, and set an aggressive timeout while you're there. A limiter that blocks for 500ms has become the outage it existed to prevent.
 
-Auth endpoints are the exception. They should fail closed, because otherwise anyone who can degrade your Redis has bought themselves unlimited credential stuffing.
+==Auth endpoints are the exception. They should fail closed, because otherwise anyone who can degrade your Redis has bought themselves unlimited credential stuffing.==
 
 ## What you give up
 

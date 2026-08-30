@@ -40,7 +40,7 @@ Any rate limiter design answers these, whether or not it says so out loud.
 
 **Which algorithm?** [[token-bucket]] and [[leaky-bucket]] think in terms of a flow rate; [[fixed-window-counter]], [[sliding-window-log]], and [[sliding-window-counter]] think in terms of counting events in a period. They differ mainly in how they treat bursts and how much state they cost.
 
-**Where does the state live?** In-process memory is fast and wrong the moment you run more than one instance — N instances each enforcing a limit of L together enforce a real limit of N×L. Shared state in [[redis]] is correct, but it puts a network round trip in every request path and makes the limiter a dependency that can take down the thing it protects.
+**Where does the state live?** In-process memory is fast and wrong the moment you run more than one instance — N instances each enforcing a limit of L together enforce a real limit of N×L. Shared state in [[Redis]] is correct, but it puts a network round trip in every request path and makes the limiter a dependency that can take down the thing it protects.
 
 **What happens on rejection?** The status code, whether you tell the caller when to come back, and — critically — what the limiter does when *it* fails.
 

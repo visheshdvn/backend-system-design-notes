@@ -6,7 +6,7 @@ tags: []
 
 # Spring Cloud Gateway Rate Limiter
 
-Spring Cloud Gateway ships a `RequestRateLimiter` filter whose default implementation, `RedisRateLimiter`, is a [[token-bucket]] backed by [[redis]] and executed as an atomic Lua script. It is the framework's answer to most of what [[design-a-rate-limiter]] builds by hand.
+Spring Cloud Gateway ships a `RequestRateLimiter` filter whose default implementation, `RedisRateLimiter`, is a [[token-bucket]] backed by [[Redis]] and executed as an atomic Lua script. It is the framework's answer to most of what [[design-a-rate-limiter]] builds by hand.
 
 ## Configuration
 

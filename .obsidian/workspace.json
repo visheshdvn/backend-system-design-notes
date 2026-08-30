@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "case-studies/design-a-rate-limiter.md",
+                "file": "tech/redis/Redis.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "design-a-rate-limiter"
+              "title": "Redis"
             }
           }
         ]
@@ -182,16 +182,19 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "bases:Create new base": false,
+      "publish:Publish changes...": false
     }
   },
   "active": "46a2bac33a1fd190",
   "lastOpenFiles": [
+    "tech/redis/Redis.md",
+    "Untitled.canvas",
+    "2026-08-31.md",
+    "case-studies/design-a-rate-limiter.md",
     "untitled folder",
     "concepts/rate-limiting/circuit-breaker.md",
-    "case-studies/design-a-rate-limiter.md",
     "System Design.md",
-    "tech/redis/redis.md",
     "concepts/redis.md",
     "concepts/rate-limiting/api-gateway.md",
     "concepts/rate-limiting/load-shedding.md",
@@ -220,8 +223,6 @@
     "concepts/load-shedding.md",
     "concepts/load-shedding.md.tmp.23112.ee0b1124f9df",
     "concepts/thundering-herd.md",
-    "concepts/thundering-herd.md.tmp.23112.1ff0cb32667d",
-    "tech/spring/spring-cloud-gateway-rate-limiter.md",
-    "concepts/leaky-bucket.md"
+    "tech/spring/spring-cloud-gateway-rate-limiter.md"
   ]
 }

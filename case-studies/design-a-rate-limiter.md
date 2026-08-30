@@ -44,7 +44,7 @@ In-process counters are the fastest thing available and the wrong answer. Run 40
 
 Sticky routing by API key fixes the arithmetic. It also makes your limiter a constraint on your load balancer, and it falls apart the moment the ring changes during a deploy. Not worth it.
 
-So the counters go in [[redis]], keyed by the limit tuple. Fifty thousand requests per second means fifty thousand Redis operations per second, which a single node handles comfortably. Shard by key hash once endpoint-class fan-out pushes you past that.
+So the counters go in [[Redis]], keyed by the limit tuple. Fifty thousand requests per second means fifty thousand Redis operations per second, which a single node handles comfortably. Shard by key hash once endpoint-class fan-out pushes you past that.
 
 ### The race that testing won't catch
 

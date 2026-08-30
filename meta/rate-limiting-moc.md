@@ -36,6 +36,6 @@ The short version of the trade: token bucket when bursts are legitimate, sliding
 
 ## Gaps
 
-Nothing here covers **distributed coordination cost** — the question of whether limiter state can be approximate and gossiped between nodes rather than centralised in [[redis]], which is how limiters work at CDN scale. That is the largest missing piece.
+Nothing here covers **distributed coordination cost** — the question of whether limiter state can be approximate and gossiped between nodes rather than centralised in [[Redis]], which is how limiters work at CDN scale. That is the largest missing piece.
 
 Also thin: **client-side rate limiting** and the retry-with-backoff behaviour that decides whether a limiter helps or amplifies, and **quota versus rate**, where the long-window billing case behaves differently enough to deserve its own note.

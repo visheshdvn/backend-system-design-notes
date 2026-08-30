@@ -96,19 +96,106 @@ Concept notes don't need prefixing — `concepts/databases/indexing.md` is alrea
 
 ---
 
-## What a note needs
+## Frontmatter
 
-Only two things are fixed.
-
-**Frontmatter:**
+Every note carries frontmatter. Properties exist so notes can be **queried** — pulled together by topic, filtered by what you haven't understood yet, sequenced into a learning path. A property that will never be queried is maintenance work for nothing, so the set below is deliberately bounded.
 
 ```yaml
 ---
-created: YYYY-MM-DD
-status: stub | draft | solid
+created: 2026-08-31
+updated: 2026-08-31
+status: draft
+level: intermediate
+confidence: low
+topics: [databases, distributed-systems]
+tech: [postgresql, cassandra]
+aliases: [MVCC, multi-version concurrency control]
+prerequisites: ["[[transaction]]", "[[isolation-level]]"]
+source: Designing Data-Intensive Applications, ch. 7
+tags: [needs-depth]
+---
+```
+
+### Always present
+
+**`created`** — ISO date, `YYYY-MM-DD`. Set once, never changed.
+
+**`updated`** — ISO date. Bump on every meaningful edit. Lets you find notes that have gone stale.
+
+**`status`** — how finished the *note* is.
+- `stub` — placeholder created to satisfy a link. Definition line only.
+- `draft` — written but thin, incomplete, or unverified.
+- `solid` — a complete explanation you'd be comfortable handing to someone.
+
+**`topics`** — the subject areas this note belongs to. A list, because plenty of notes span more than one and folders can only hold a note in a single place. Replication genuinely belongs to both databases and distributed systems.
+
+**`tags`** — cross-cutting state only, never subject matter. See the Linking section.
+
+### Present when applicable
+
+**`level`** — `foundational`, `intermediate`, or `advanced`, judged from the second-year-student baseline. Foundational means it needs no prerequisites. This drives reading order more than anything else here.
+
+**`confidence`** — `low`, `medium`, or `high`. How well **you** understand it, which is a different question from how good the note is. A note can be `status: solid` and `confidence: low` — well written, still not intuitive. This field is what makes revision targeted instead of random.
+
+**`tech`** — technologies the note touches. On a concept note it lists the systems referenced as implementations; on a note inside `tech/` it's usually just the one product. Makes "everything that mentions Cassandra" a single query across the whole vault.
+
+**`aliases`** — Obsidian resolves `[[wikilinks]]` against aliases as well as filenames. Add every name the concept actually goes by: the expanded form, the acronym, common synonyms. Cheap to add and it prevents a large class of broken links.
+
+**`prerequisites`** — notes to read first, as wikilinks. Given the beginner audience, this is what turns a pile of notes into a path. Quote the values — YAML treats a leading `[` as the start of a list, so `"[[transaction]]"` needs the quotes.
+
+**`source`** — where it came from: a book and chapter, a paper, official docs, a conversation. Only when there's a specific source worth returning to.
+
+### Controlled vocabulary
+
+`topics` and `tech` are only useful if the values stay consistent. `db`, `database`, and `databases` on three different notes silently split every query into thirds.
+
+**`topics`** draws from the `concepts/` subfolder names, and nothing else:
+
+```
+databases  distributed-systems  networking  caching  messaging  architecture
+```
+
+**`tech`** uses the lowercase product name as it appears in `tech/`:
+
+```
+postgresql  redis  cassandra  couchdb  kafka  spring  hibernate
+```
+
+Adding a new value to either list is a real decision, not an inline improvisation. Propose it in chat first.
+
+### Stub notes
+
+Stubs get the minimum, and nothing speculative:
+
+```yaml
+---
+created: 2026-08-31
+updated: 2026-08-31
+status: stub
+topics: [databases]
 tags: []
 ---
 ```
+
+Do not guess at `level`, `confidence`, or `prerequisites` for a concept that hasn't been written yet. Fill them in when the note gets real content.
+
+### Why this pays off
+
+With Dataview or Bases installed, the properties turn into working views:
+
+```dataview
+LIST FROM "concepts"
+WHERE contains(topics, "databases") AND confidence = "low"
+SORT level ASC
+```
+
+That's a revision queue — database topics you've written up but don't actually feel solid on, easiest first. None of it works if the values drift.
+
+---
+
+## What a note needs
+
+Beyond frontmatter, only one thing is fixed.
 
 **An opening definition:** the title, then one or two sentences saying what the thing is in plain language. Everything else is up to the idea.
 
@@ -124,13 +211,39 @@ One thing worth reaching for by default: **what you give up**. Most backend conc
 
 ## Voice
 
-**Write for an engineer who is trying to learn this properly.** Not a beginner who needs everything softened, and not an expert who needs a reference card — someone competent in their own area, encountering this topic seriously for the first time. Assume intelligence, don't assume prior exposure.
+**Write for a second-year computer science student who is meeting this topic for the very first time.**
 
-The tone is warm, direct, and educational. Write the way a good senior engineer explains something at a whiteboard when they actually want you to get it: patient, willing to back up, not showing off.
+Assume they are smart and curious. Assume they know how to write a program, roughly what a database is, and roughly what a server is. Assume nothing beyond that. They have not worked on a production system. They have never seen real traffic, debugged an outage, or watched a service fall over. Every piece of industry context has to be supplied, because they have none.
+
+The tone is warm, patient, and plain. Write the way a good teaching assistant explains something in office hours to someone who is genuinely lost and slightly embarrassed about it: unhurried, encouraging, never condescending.
 
 Notes are **full explanations, self-contained and readable months later**. Someone reading cold should understand the concept without opening another note or searching the web.
 
-**Address the reader as "you."** "You'd hit this the moment your write volume outgrows a single node" lands better than "one would encounter this scenario at scale." Second person keeps the writing grounded in a real situation.
+### Explaining for a beginner
+
+**Explain every step, including the ones that feel obvious.** The gap between "obvious" and "confusing" is exactly where beginners get stranded, and it's invisible from the inside. If a sentence assumes a leap, spell the leap out.
+
+**Never use a harder word to explain an easier one.** If explaining sharding requires the reader to already know what a node, a partition key, and horizontal scaling are, define all three first. Check every explanation for terms that were never introduced.
+
+**Define everything on first use, including basics.** Node, throughput, latency, replica, index, cluster, consistency. These feel too basic to define. They are not — they're precisely the words a second-year student nods along to without actually knowing.
+
+**Spell out every acronym the first time.** ACID, CAP, WAL, MVCC, TTL, RPS. Then say what it means in plain words, because expanding the acronym usually explains nothing on its own.
+
+**Say why it's called that.** Names like write-ahead log, optimistic locking, and tombstone all encode their own explanation. Unpacking the name makes the concept stick far better than a definition does.
+
+**Start from something they already know.** A shared Google Doc, a college library, a class attendance register, a queue at a canteen. Build from the familiar thing toward the technical one. Do not open with the technical framing and add an analogy afterward.
+
+**Use real, concrete numbers.** "Ten thousand orders a second" instead of "high load." "Two hundred milliseconds" instead of "noticeable latency." Beginners cannot calibrate vague scale words, and a real number turns an abstraction into something they can picture.
+
+**Short sentences. Plain words.** Choose "the database writes it down before doing the change" over "the operation is durably persisted prior to mutation." Everyday vocabulary wherever the technical term isn't doing real work.
+
+**Banned words: "simply," "just," "obviously," "of course," "as you know," "trivially."** Every one of them tells a confused reader that the thing they don't understand should have been easy. That's the fastest way to make someone stop reading.
+
+**Simple is not shallow.** Do not skip the hard part or wave at it. Explain it more slowly, in smaller steps, with a diagram if it helps. The goal is a reader who could explain the concept back to a friend — not one who has been handed a comfortable summary.
+
+### Still true regardless
+
+**Address the reader as "you."** "You'd hit this the moment your writes outgrow a single machine" lands better than "one would encounter this scenario at scale." Second person keeps the writing grounded in a real situation.
 
 **Explain why, not just what.** The mechanism is the easy part and it's everywhere online. The reasoning behind it — why this design and not the obvious alternative, what the people who built it were worried about — is what makes a note worth having.
 
@@ -139,8 +252,6 @@ Notes are **full explanations, self-contained and readable months later**. Someo
 **Use concrete analogies, sparingly.** One good analogy per note, tied to something physical or familiar. Then drop it and return to the actual mechanism — analogies explain, they don't substitute.
 
 Prose paragraphs over bullet fragments for explanation. Bullets are for genuine lists — enumerated trade-offs, comparison points, steps in a sequence. A wall of one-line bullets looks organized but loses the reasoning connecting them, and the reasoning is the hard part to reconstruct later.
-
-Define jargon on first use. Prefer a concrete example over an abstract restatement.
 
 ### What "human-like" means here
 
@@ -176,6 +287,8 @@ spring.jpa.properties.hibernate.jdbc.batch_size: 50
 ```
 
 No full class definitions, no imports, no setup scaffolding. If a concept needs more than a few lines to demonstrate, that's a signal it belongs in `case-studies/` as a worked example rather than inline.
+
+**Never drop a snippet in bare.** A beginner cannot read `@Transactional(propagation = Propagation.REQUIRES_NEW)` and work out what it does. Every snippet gets a sentence before it saying what it's for, and a sentence after saying what actually happens when the code runs.
 
 Always tag the fence with a language (`java`, `yaml`, `sql`, `properties`, `bash`).
 

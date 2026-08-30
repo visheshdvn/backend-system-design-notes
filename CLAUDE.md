@@ -18,16 +18,55 @@ Read this file at the start of every session. It governs how you create, structu
 
 ```
 inbox/          Raw capture. Unprocessed. Nothing stays here permanently.
-concepts/       Atomic concept notes. One idea per note. The core of the vault.
-spring/         Framework-specific notes: JPA, transactions, Actuator, config, testing.
-case-studies/   Applied design problems and end-to-end "how X works" breakdowns.
+concepts/       Ideas that exist independently of any product. The core of the vault.
+tech/           Specific technologies and what they chose to do.
+case-studies/   Applied design problems, comparisons, end-to-end breakdowns.
 posts/          Drafts for X and LinkedIn.
-meta/           Templates, Maps of Content.
+meta/           Maps of Content.
 ```
 
-**Placement rule:** a general idea goes in `concepts/`. Something that only makes sense in the context of Spring or the JVM goes in `spring/`. A specific system or design problem walked through end to end goes in `case-studies/`.
+### concepts/ vs tech/
 
-When a note could plausibly go in two places, choose `concepts/` and link to it from the other folder. Concepts are the hub; everything else links inward.
+This is the placement decision that matters most, and the test is simple:
+
+**If the explanation would still be true after every product implementing it disappeared, it's a concept.** MVCC, write-ahead logging, consistent hashing, quorum reads — these describe ideas. They belong in `concepts/`.
+
+**If it describes what one specific product decided to do, it's tech.** How PostgreSQL implements MVCC is a technology note, because it's about a particular set of trade-offs Postgres made — including the vacuum problem that follows from keeping old row versions around. Cassandra solved the same problem differently.
+
+The split exists so both directions of browsing stay clean. When someone is learning replication, a file named `cassandra.md` sitting beside it is noise. When someone is comparing Redis against Cassandra, `consistent-hashing.md` is noise.
+
+Keep concept notes product-neutral. Reference implementations by linking out to `tech/`, not by embedding product specifics inline.
+
+### Subfolders
+
+Group related notes into one level of subfolders inside `concepts/` and `tech/`:
+
+```
+concepts/
+  databases/
+  distributed-systems/
+  networking/
+  caching/
+  messaging/
+  architecture/
+
+tech/
+  postgresql/
+  redis/
+  cassandra/
+  kafka/
+  spring/
+```
+
+**One level of nesting, never two.** `concepts/databases/indexing/b-tree.md` is where folders stop paying for themselves. The link graph is the real organizing structure; folders exist only to keep the file tree scannable.
+
+**Do not create subfolders in advance.** Make one when four or five notes want it. An empty folder creates pressure to file things into it, which is how a taxonomy starts distorting the notes it was meant to organize. Until then, notes sit directly in `concepts/` or `tech/`.
+
+### Placement edge cases
+
+- A comparison between two products (`redis-vs-memcached`) goes in `case-studies/`. It's an applied decision, not a description of one thing.
+- A note that could plausibly go in either `concepts/` or `tech/` goes in `concepts/`, with a link out to the technology note.
+- Spring lives at `tech/spring/` like any other technology. It gets no special position despite being the daily working context.
 
 ---
 
@@ -39,10 +78,21 @@ Kebab-case, matching the concept term as it would be spoken. No dates, no numeri
 database-sharding.md
 optimistic-locking.md
 consistent-hashing.md
-spring-transaction-propagation.md
 ```
 
 Singular over plural (`bloom-filter.md`, not `bloom-filters.md`). The filename should be guessable from the concept name alone, so `[[wikilinks]]` resolve without lookup.
+
+**Prefix filenames inside `tech/` subfolders with the technology name.** Obsidian resolves wikilinks by filename, not path, so `tech/redis/persistence.md` and `tech/postgresql/persistence.md` produce ambiguous links you have to disambiguate every single time. Prefixing avoids the collision entirely:
+
+```
+tech/postgresql/postgresql.md            ← the overview note
+tech/postgresql/postgresql-mvcc.md
+tech/redis/redis-persistence.md
+tech/cassandra/cassandra-write-path.md
+tech/spring/spring-transaction-propagation.md
+```
+
+Concept notes don't need prefixing — `concepts/databases/indexing.md` is already unique.
 
 ---
 
@@ -64,19 +114,52 @@ tags: []
 
 Beyond that, structure the note however the concept actually wants to be explained. Some concepts are a problem and its solution. Some are a comparison against a neighbouring idea. Some are a mechanism that needs a diagram and nothing else. Let the shape follow the content — do not reach for a standard set of headings and fill them in.
 
-Headings that often earn their place, when relevant: what problem it solves, how it works, trade-offs, when not to use it, how it differs from a similar concept, where it shows up in Spring. Use the ones that apply. Skip the ones that don't rather than leaving them empty.
+Headings that often earn their place, when relevant: what problem it solves, how it works, trade-offs, when not to use it, how it differs from a similar concept. Use the ones that apply. Skip the ones that don't rather than leaving them empty.
+
+For concept notes, a short section pointing at real implementations is usually worth having — `[[postgresql-mvcc]]` and `[[cassandra-tombstones]]` as two systems that solved the same problem differently. The contrast between implementations is where most of the understanding lives, and it stays out of reach if the concept note is welded to a single product.
 
 One thing worth reaching for by default: **what you give up**. Most backend concepts have a real cost, and it's the part that gets skipped and the part that matters in a design discussion. Include it wherever there's something to say.
 
 ---
 
-## Writing style
+## Voice
+
+**Write for an engineer who is trying to learn this properly.** Not a beginner who needs everything softened, and not an expert who needs a reference card — someone competent in their own area, encountering this topic seriously for the first time. Assume intelligence, don't assume prior exposure.
+
+The tone is warm, direct, and educational. Write the way a good senior engineer explains something at a whiteboard when they actually want you to get it: patient, willing to back up, not showing off.
 
 Notes are **full explanations, self-contained and readable months later**. Someone reading cold should understand the concept without opening another note or searching the web.
+
+**Address the reader as "you."** "You'd hit this the moment your write volume outgrows a single node" lands better than "one would encounter this scenario at scale." Second person keeps the writing grounded in a real situation.
+
+**Explain why, not just what.** The mechanism is the easy part and it's everywhere online. The reasoning behind it — why this design and not the obvious alternative, what the people who built it were worried about — is what makes a note worth having.
+
+**Anticipate the confusion.** If a concept has a part that reliably trips people up, name it directly: "This is the bit that catches people out." Address the misreading before the reader has to discover it themselves.
+
+**Use concrete analogies, sparingly.** One good analogy per note, tied to something physical or familiar. Then drop it and return to the actual mechanism — analogies explain, they don't substitute.
 
 Prose paragraphs over bullet fragments for explanation. Bullets are for genuine lists — enumerated trade-offs, comparison points, steps in a sequence. A wall of one-line bullets looks organized but loses the reasoning connecting them, and the reasoning is the hard part to reconstruct later.
 
 Define jargon on first use. Prefer a concrete example over an abstract restatement.
+
+### What "human-like" means here
+
+Vary sentence length. A short one after two long ones resets the reader's attention. Uniform sentence rhythm is the fastest way to sound machine-generated.
+
+Have an opinion where you've earned one. "This is usually the wrong default" is more useful than "this may not be suitable in all contexts." Hedging on everything is not neutrality, it's noise.
+
+Avoid these patterns, which read as generated text:
+
+- **Em-dash asides used as a default rhythm.** Fine occasionally, exhausting when every paragraph has one.
+- **"Not X, but Y" framing.** "It's not about speed, it's about consistency." Overused to the point of parody.
+- **Colon-then-reveal sentences.** "There's one catch: latency."
+- **Empty openers.** "It's worth noting that," "In today's distributed systems landscape," "Let's dive in."
+- **Rule-of-three lists** where two items or four would have been the honest count.
+- **Bold scattered across key terms** in every paragraph. Bold is for genuine emphasis, a few times per note at most.
+- **Closing recaps** that restate what was just said. If the note is clear, it doesn't need a summary. End on the last real point.
+- **Scare quotes around invented labels.** If a term needs quotes to work, pick a better term.
+
+Warm does not mean padded. No filler enthusiasm, no "great question," no motivational framing about the learning journey. The warmth comes from clarity and from taking the reader's understanding seriously, not from adjectives.
 
 ---
 
@@ -124,7 +207,7 @@ Use `[[wikilinks]]` for every concept mentioned that has or should have its own 
 
 Never tag by topic. `#caching` is a worse version of `[[caching]]`.
 
-**MOCs** live in `meta/`. When a cluster of five or more related notes forms, propose one — do not create it unprompted.
+**MOCs** live in `meta/`, typically one per subfolder area (`databases-moc.md`, `distributed-systems-moc.md`). When a cluster of five or more related notes forms, propose one — do not create it unprompted.
 
 ---
 

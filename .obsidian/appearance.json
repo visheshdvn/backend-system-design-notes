@@ -2,5 +2,7 @@
   "theme": "obsidian",
   "cssTheme": "",
   "baseFontSizeAction": true,
-  "baseFontSize": 16
+  "baseFontSize": 16,
+  "showRibbon": true,
+  "showViewHeader": true
 }

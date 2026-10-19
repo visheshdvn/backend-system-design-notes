@@ -24,7 +24,7 @@ These pull in different directions. Capacity protection wants a global limit acr
 
 ## Throttling versus shedding
 
-Two different things can happen to a request that exceeds a limit, and the words get used interchangeably when they shouldn't be.
+Two different things can happen to a request that exceeds a limit -
 
 **Shedding** rejects the request immediately — HTTP 429, and the caller decides whether to retry. The request costs almost nothing to refuse, and the caller learns about the limit right away.
 
@@ -54,4 +54,4 @@ And the limiter becomes a dependency. A Redis-backed limiter in front of every r
 
 ## Where it shows up
 
-The end-to-end walkthrough lives in [[design-a-rate-limiter]]. On the Spring side, [[spring-cloud-gateway-rate-limiter]] gives you a Redis-backed token bucket by configuration rather than by writing one.
+The end-to-end walkthrough lives in [[Design a Rate Limiter]]. On the Spring side, [[spring-cloud-gateway-rate-limiter]] gives you a Redis-backed token bucket by configuration rather than by writing one.

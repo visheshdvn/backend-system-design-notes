@@ -1,5 +1,15 @@
 {
-  "terminal:open-terminal.integrated.current": [
+  "terminal:close-terminal": [
+    {
+      "modifiers": [
+        "Mod",
+        "Shift"
+      ],
+      "key": "`"
+    }
+  ],
+  "terminal:toggle-focus-on-last-terminal": [],
+  "terminal:open-terminal.default.root": [
     {
       "modifiers": [
         "Mod"

@@ -1,14 +1,16 @@
 ---
 created: 2026-08-30
-status: draft
-tags: [interview-relevant]
+status: completed
+tags:
+  - interview-relevant
+  - "#system-design"
 ---
 
 # Design a Rate Limiter
 
 A walkthrough of building a distributed [[rate-limiting]] service for a public API, from the first decision through to the failure modes. The individual algorithms have their own notes. What this one covers is everything that only becomes visible once you try to assemble them into something real.
 
-## What you're building
+## What we're building
 
 Picture a public API serving around 50,000 requests per second across 200,000 active API keys, running on a horizontally scaled fleet. Limits apply per API key and per endpoint class, because a search endpoint and a health check have no business sharing a budget. When you reject someone, you owe them an honest answer about when to come back. The limiter should add a millisecond or two at p99, no more.
 

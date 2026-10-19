@@ -9,5 +9,19 @@
   "anuppuccin-theme-settings@@anp-callout-fold-position": "0",
   "anuppuccin-theme-settings@@anp-custom-checkboxes": true,
   "anuppuccin-theme-settings@@anp-speech-bubble": false,
-  "minimal-advanced@@hide-markdown": false
+  "minimal-advanced@@hide-markdown": false,
+  "minimal-advanced@@mobile-toolbar-off": false,
+  "minimal-style@@sidebar-tabs-style": "sidebar-tabs-default",
+  "minimal-style@@sidebar-tabs-names": "tab-names-off",
+  "minimal-style@@hide-help": false,
+  "minimal-style@@hide-settings": false,
+  "minimal-style@@ribbon-style": "ribbon-hidden",
+  "minimal-style@@minimal-unstyled-tags": false,
+  "minimal-style@@tag-border-width": "1px",
+  "minimal-style@@window-title-off": false,
+  "minimal-style@@tag-radius": "14px",
+  "minimal-style@@tag-color@@dark": "#00A63E",
+  "minimal-style@@file-header-font-weight": 400,
+  "minimal-style@@tag-color@@light": "#00A63E",
+  "minimal-style@@metadata-heading-off": false
 }

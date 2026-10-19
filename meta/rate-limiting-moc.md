@@ -24,7 +24,7 @@ The short version of the trade: token bucket when bursts are legitimate, sliding
 
 ## Putting it together
 
-[[design-a-rate-limiter]] is where the concepts stop being separable. The decisions that only surface at assembly time are the atomicity trap — read-modify-write across instances is a lost-update race that testing will not catch — and the failure policy, where fail-open and fail-closed are both bad and the real answer is a degraded in-process fallback. It also covers why `Retry-After` without jitter builds a [[thundering-herd]] on purpose.
+[[Design a Rate Limiter]] is where the concepts stop being separable. The decisions that only surface at assembly time are the atomicity trap — read-modify-write across instances is a lost-update race that testing will not catch — and the failure policy, where fail-open and fail-closed are both bad and the real answer is a degraded in-process fallback. It also covers why `Retry-After` without jitter builds a [[thundering-herd]] on purpose.
 
 [[spring-cloud-gateway-rate-limiter]] is the same thing when the framework has already done it: a Redis-backed token bucket by configuration, with a fail-open default and a bare 429 that you will probably want to improve. [[bucket4j]] is the smaller-commitment alternative for a single service.
 

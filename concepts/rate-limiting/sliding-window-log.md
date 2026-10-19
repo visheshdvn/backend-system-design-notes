@@ -1,7 +1,8 @@
 ---
 created: 2026-08-30
 status: draft
-tags: []
+tags:
+  - algorithm
 ---
 
 # Sliding Window Log
@@ -22,7 +23,7 @@ Memory, and not by a small factor. Every algorithm here stores one or two number
 
 The cost also scales with the limit rather than with traffic, which inverts the usual intuition: raising a limit from 100 to 100,000 is free under token bucket and a thousand-fold memory increase here.
 
-There is a second, subtler cost. The trim-count-append sequence is a read-modify-write over a structure that must not be interleaved with another instance's, so it needs to be atomic — a Lua script or a transaction, not three round trips. The naive implementation looks correct in testing and silently over-admits under concurrency, which is the failure mode discussed in [[design-a-rate-limiter]].
+There is a second, subtler cost. The trim-count-append sequence is a read-modify-write over a structure that must not be interleaved with another instance's, so it needs to be atomic — a Lua script or a transaction, not three round trips. The naive implementation looks correct in testing and silently over-admits under concurrency, which is the failure mode discussed in [[Design a Rate Limiter]].
 
 And the trim itself is unbounded work. A key that has been idle for hours accumulates nothing, but a key at its limit pays to remove expired entries on every single request, so the expensive path is the hot path.
 

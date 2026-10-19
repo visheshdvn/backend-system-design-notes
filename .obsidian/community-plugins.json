@@ -2,5 +2,12 @@
   "obsidian-style-settings",
   "table-editor-obsidian",
   "obsidian-excalidraw-plugin",
-  "terminal"
+  "terminal",
+  "obsidian-git",
+  "advanced-canvas",
+  "code-styler",
+  "callout-manager",
+  "obsidian-minimal-settings",
+  "obsidian-icon-folder",
+  "tag-wrangler"
 ]

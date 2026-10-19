@@ -6,7 +6,7 @@ tags: []
 
 # Spring Cloud Gateway Rate Limiter
 
-Spring Cloud Gateway ships a `RequestRateLimiter` filter whose default implementation, `RedisRateLimiter`, is a [[token-bucket]] backed by [[Redis]] and executed as an atomic Lua script. It is the framework's answer to most of what [[design-a-rate-limiter]] builds by hand.
+Spring Cloud Gateway ships a `RequestRateLimiter` filter whose default implementation, `RedisRateLimiter`, is a [[token-bucket]] backed by [[Redis]] and executed as an atomic Lua script. It is the framework's answer to most of what [[Design a Rate Limiter]] builds by hand.
 
 ## Configuration
 
@@ -41,11 +41,11 @@ A resolver returning `Mono.empty()` denies the request outright. That is the cor
 
 ## Behaviour worth knowing before you rely on it
 
-**It fails open.** If Redis is unreachable, the filter logs and allows the request. That is the sane default for capacity protection and the wrong one for an authentication endpoint, per the failure discussion in [[design-a-rate-limiter]]. If you need fail-closed anywhere, you are writing your own `RateLimiter` implementation.
+**It fails open.** If Redis is unreachable, the filter logs and allows the request. That is the sane default for capacity protection and the wrong one for an authentication endpoint, per the failure discussion in [[Design a Rate Limiter]]. If you need fail-closed anywhere, you are writing your own `RateLimiter` implementation.
 
 **Headers are on by default.** The filter emits `X-RateLimit-Remaining`, `X-RateLimit-Burst-Capacity`, and `X-RateLimit-Replenish-Rate`. Disable them with `redis-rate-limiter.includeHeaders: false` if you would rather not advertise the policy.
 
-**Rejection is a bare 429.** No `Retry-After`, so clients have nothing to pace against and will retry blindly. Adding that header — with jitter — takes a small custom filter, and skipping it is how you end up with the synchronised retry storm described in [[design-a-rate-limiter]].
+**Rejection is a bare 429.** No `Retry-After`, so clients have nothing to pace against and will retry blindly. Adding that header — with jitter — takes a small custom filter, and skipping it is how you end up with the synchronised retry storm described in [[Design a Rate Limiter]].
 
 **It needs the reactive Redis starter**, `spring-boot-starter-data-redis-reactive`. The blocking starter will not satisfy it, and the resulting failure names a missing bean rather than the actual problem.
 

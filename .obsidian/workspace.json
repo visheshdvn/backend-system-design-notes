@@ -4,69 +4,24 @@
     "type": "split",
     "children": [
       {
-        "id": "20c839981c1557d9",
+        "id": "36e990df45a49bdf",
         "type": "tabs",
         "children": [
           {
-            "id": "1755780d0949608f",
+            "id": "7218b2d106a6f37d",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "concepts/rate-limiting/rate-limiting.md",
+                "file": "System Design.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "rate-limiting"
-            }
-          },
-          {
-            "id": "4b10b1b7ed7ff2af",
-            "type": "leaf",
-            "state": {
-              "type": "terminal:terminal",
-              "state": {
-                "terminal:terminal": {
-                  "cwd": "/home/visheshdvn/mine/notes/Obsidian Vaults/backend-system-design-notes",
-                  "focus": false,
-                  "profile": {
-                    "args": [
-                      "--login"
-                    ],
-                    "environment": [],
-                    "executable": "/bin/bash",
-                    "followTheme": true,
-                    "name": "Bash",
-                    "platforms": {
-                      "darwin": true,
-                      "linux": true
-                    },
-                    "pythonExecutable": "python3",
-                    "restoreHistory": false,
-                    "rightClickAction": "copyPaste",
-                    "successExitCodes": [
-                      "0",
-                      "SIGINT",
-                      "SIGTERM"
-                    ],
-                    "terminalOptions": {
-                      "documentOverride": null
-                    },
-                    "type": "integrated",
-                    "win32Backend": "conpty"
-                  },
-                  "profileSourceId": "c0b0ca79-417a-42ac-a732-6660871d71a8",
-                  "serial": null,
-                  "userTitle": ""
-                }
-              },
-              "icon": "terminal:tab-bezel",
-              "title": "visheshdvn@vishesh-PC: ~/mine/notes/Obsidian Vaults/backend-system-design-notes"
+              "title": "System Design"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -245,7 +200,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 458.30859375
+    "width": 458.30859375,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -260,11 +216,10 @@
       "obsidian-excalidraw-plugin:New drawing": false,
       "terminal:Open terminal": false,
       "obsidian-git:Open Git source control": false,
-      "callout-manager:Insert Callout": false,
-      "copilot:Open Copilot Agent Chat": false
+      "callout-manager:Insert Callout": false
     }
   },
-  "active": "4b10b1b7ed7ff2af",
+  "active": "7218b2d106a6f37d",
   "lastOpenFiles": [
     "concepts/rate-limiting/rate-limiting.md",
     "concepts/rate-limiting/sliding-window-log.md",

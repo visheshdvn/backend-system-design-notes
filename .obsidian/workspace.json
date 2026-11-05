@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "System Design.md",
+                "file": "LLD/Design Questions/Design of Cache system.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "System Design"
+              "title": "Design of Cache system"
             }
           }
         ]
@@ -98,7 +98,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 482.37890625
+    "width": 444.0625
   },
   "right": {
     "id": "a63a656e821a1725",
@@ -221,6 +221,10 @@
   },
   "active": "7218b2d106a6f37d",
   "lastOpenFiles": [
+    "LLD/Design Questions/Design of Cache system.md",
+    "LLD/Design Questions",
+    "LLD",
+    "System Design.md",
     "concepts/rate-limiting/rate-limiting.md",
     "concepts/rate-limiting/sliding-window-log.md",
     "case-studies/Design a Rate Limiter.md",
@@ -242,21 +246,17 @@
     "copilot/skills/json-canvas/references",
     "copilot/skills/json-canvas",
     "copilot/skills/obsidian-bases/SKILL.md",
-    "copilot/skills/obsidian-bases/LICENSE",
     "copilot/skills/obsidian-bases/references/EXAMPLES.md",
     "copilot/skills/obsidian-bases/references/FUNCTIONS_REFERENCE.md",
-    "copilot/skills/obsidian-bases/references",
     "copilot/skills/obsidian-markdown/references/PROPERTIES.md",
     "copilot/skills/obsidian-markdown/references/EMBEDS.md",
     "copilot/skills/obsidian-markdown/references/CALLOUTS.md",
     "copilot/skills/openartifacts-publish/SKILL.md",
-    "System Design.md",
     "tech/java/Java Memory Model.md",
     "concepts/locking/CAS & Bucket Locking in ConcurrentHashMap.md",
     "Untitled.canvas",
     "concepts/rate-limiting/backpressure.md",
     "tech/spring/spring-cloud-gateway-rate-limiter.md",
-    "CLAUDE.md",
-    "file:/home/visheshdvn/Downloads/java_memory_model_jmm.md"
+    "CLAUDE.md"
   ]
 }

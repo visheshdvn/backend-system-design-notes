@@ -3,7 +3,6 @@ created: 2026-08-30
 status: draft
 tags: [interview-relevant]
 ---
-
 # Sliding Window Counter
 
 Sliding window counter is a [[rate-limiting]] algorithm that approximates a true sliding window using two fixed-window counters. It keeps [[fixed-window-counter]]'s cost and removes most of its boundary flaw, which makes it the usual production compromise.

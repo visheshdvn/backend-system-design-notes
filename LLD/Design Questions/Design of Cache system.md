@@ -1,4 +1,4 @@
-e# Requirements
+# Requirements
 - It must store and retrieve Key-Value Pairs
 - It should manage limited memory using cache eviction policies
 - Supports 2 core operations

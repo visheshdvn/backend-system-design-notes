@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "LLD/Design Questions/Design of Cache system.md",
+                "file": "concepts/rate-limiting/sliding-window-counter.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Design of Cache system"
+              "title": "sliding-window-counter"
             }
           }
         ]
@@ -219,8 +219,9 @@
       "callout-manager:Insert Callout": false
     }
   },
-  "active": "7218b2d106a6f37d",
+  "active": "5f500b287d429c03",
   "lastOpenFiles": [
+    "concepts/rate-limiting/sliding-window-counter.md",
     "LLD/Design Questions/Design of Cache system.md",
     "LLD/Design Questions",
     "LLD",
@@ -256,7 +257,6 @@
     "concepts/locking/CAS & Bucket Locking in ConcurrentHashMap.md",
     "Untitled.canvas",
     "concepts/rate-limiting/backpressure.md",
-    "tech/spring/spring-cloud-gateway-rate-limiter.md",
-    "CLAUDE.md"
+    "tech/spring/spring-cloud-gateway-rate-limiter.md"
   ]
 }

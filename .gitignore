@@ -1,0 +1,15 @@
+# Ignore entire workspace layouts (Absolute must)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Ignore internal caches and temporary files
+.obsidian/cache/
+.obsidian/graphs/
+.obsidian/backups/
+
+# OS-specific clutter (Crucial for Mac/Linux sync)
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Thumbs.db
